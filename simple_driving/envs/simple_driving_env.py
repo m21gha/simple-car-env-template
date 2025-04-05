@@ -22,9 +22,10 @@ class SimpleDrivingEnv(gym.Env):
             self.action_space = gym.spaces.box.Box(
                 low=np.array([-1, -.6], dtype=np.float32),
                 high=np.array([1, .6], dtype=np.float32))
-        self.observation_space = gym.spaces.box.Box(
-            low=np.array([-40, -40], dtype=np.float32),
-            high=np.array([40, 40], dtype=np.float32))
+        self.observation_space = gym.spaces.Box(
+            low=np.array([-40, -40, -40, -40], dtype=np.float32),
+            high=np.array([40, 40, 40, 40], dtype=np.float32)
+        )
         self.np_random, _ = gym.utils.seeding.np_random()
 
         if renders:
@@ -82,6 +83,8 @@ class SimpleDrivingEnv(gym.Env):
         # Done by reaching goal
         if dist_to_goal < 1.5 and not self.reached_goal:
             #print("reached goal")
+            reward += 50  # Bonus for reaching the goal
+            print("Goal reached! Step reward (with bonus):", reward)
             self.done = True
             self.reached_goal = True
 
@@ -112,6 +115,15 @@ class SimpleDrivingEnv(gym.Env):
 
         # Visual element of the goal
         self.goal_object = Goal(self._p, self.goal)
+
+        # Add an obstacle.
+        # You can choose a fixed position or sample it randomly.
+        obs_x = self.np_random.uniform(-5, 5)
+        obs_y = self.np_random.uniform(-5, 5)
+        self.obstacle = self._p.loadURDF(
+            fileName="simple_driving/resources/simpleobstacle.urdf",
+            basePosition=[obs_x, obs_y, 0]
+        )
 
         # Get observation to return
         carpos = self.car.get_observation()
@@ -175,16 +187,22 @@ class SimpleDrivingEnv(gym.Env):
             return frame
         else:
             return np.array([])
-
+    
     def getExtendedObservation(self):
-        # self._observation = []  #self._racecar.getObservation()
+        # Get car and goal info
         carpos, carorn = self._p.getBasePositionAndOrientation(self.car.car)
         goalpos, goalorn = self._p.getBasePositionAndOrientation(self.goal_object.goal)
         invCarPos, invCarOrn = self._p.invertTransform(carpos, carorn)
-        goalPosInCar, goalOrnInCar = self._p.multiplyTransforms(invCarPos, invCarOrn, goalpos, goalorn)
-
-        observation = [goalPosInCar[0], goalPosInCar[1]]
+        goalPosInCar, _ = self._p.multiplyTransforms(invCarPos, invCarOrn, goalpos, goalorn)
+        
+        # Get obstacle info
+        obstaclePos, obstacleOrn = self._p.getBasePositionAndOrientation(self.obstacle)
+        obstaclePosInCar, _ = self._p.multiplyTransforms(invCarPos, invCarOrn, obstaclePos, obstacleOrn)
+        
+        # Now the observation is [x_goal, y_goal, x_obstacle, y_obstacle]
+        observation = [goalPosInCar[0], goalPosInCar[1], obstaclePosInCar[0], obstaclePosInCar[1]]
         return observation
+
 
     def _termination(self):
         return self._envStepCounter > 2000

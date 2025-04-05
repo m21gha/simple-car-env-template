@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<robot name="simpleobstacle">
+  <!-- Define a blue material -->
+  <material name="blue">
+    <color rgba="0 0 1 1"/>
+  </material>
+
+  <!-- Define the base link for the obstacle -->
+  <link name="base_link">
+    <!-- Visual properties -->
+    <visual>
+      <geometry>
+        <!-- A box of size 1x1x1 (adjust as needed) -->
+        <box size="1 1 1"/>
+      </geometry>
+      <material name="blue"/>
+    </visual>
+
+    <!-- Collision properties (usually similar to visual) -->
+    <collision>
+      <geometry>
+        <box size="1 1 1"/>
+      </geometry>
+    </collision>
+
+    <!-- Inertial properties (mass and inertia) -->
+    <inertial>
+      <mass value="1"/>
+      <!-- These inertia values are approximate for a 1x1x1 box -->
+      <inertia ixx="0.083" ixy="0" ixz="0" iyy="0.083" iyz="0" izz="0.083"/>
+    </inertial>
+  </link>
+</robot>
