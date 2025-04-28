@@ -22,6 +22,14 @@ class SimpleDrivingEnv(gym.Env):
             self.action_space = gym.spaces.box.Box(
                 low=np.array([-1, -.6], dtype=np.float32),
                 high=np.array([1, .6], dtype=np.float32))
+        
+        # for Part 1–3: 2-dim [x_goal, y_goal] only
+        #self.observation_space = gym.spaces.Box(
+        #    low=np.array([-40, -40], dtype=np.float32),
+        #    high=np.array([ 40,  40], dtype=np.float32)
+        #)
+
+        #PART 4 
         self.observation_space = gym.spaces.Box(
             low=np.array([-40, -40, -40, -40], dtype=np.float32),
             high=np.array([40, 40, 40, 40], dtype=np.float32)
@@ -83,6 +91,8 @@ class SimpleDrivingEnv(gym.Env):
         # Done by reaching goal
         if dist_to_goal < 1.5 and not self.reached_goal:
             #print("reached goal")
+
+            # PART 3
             reward += 50  # Bonus for reaching the goal
             print("Goal reached! Step reward (with bonus):", reward)
             self.done = True
@@ -116,8 +126,7 @@ class SimpleDrivingEnv(gym.Env):
         # Visual element of the goal
         self.goal_object = Goal(self._p, self.goal)
 
-        # Add an obstacle.
-        # You can choose a fixed position or sample it randomly.
+        # PART 4: Add an obstacle.
         obs_x = self.np_random.uniform(-5, 5)
         obs_y = self.np_random.uniform(-5, 5)
         self.obstacle = self._p.loadURDF(
@@ -199,8 +208,12 @@ class SimpleDrivingEnv(gym.Env):
         obstaclePos, obstacleOrn = self._p.getBasePositionAndOrientation(self.obstacle)
         obstaclePosInCar, _ = self._p.multiplyTransforms(invCarPos, invCarOrn, obstaclePos, obstacleOrn)
         
-        # Now the observation is [x_goal, y_goal, x_obstacle, y_obstacle]
+        # PART 1 - 3
+        #observation = [goalPosInCar[0], goalPosInCar[1]]
+
+        # PART 4:  Now the observation is [x_goal, y_goal, x_obstacle, y_obstacle]
         observation = [goalPosInCar[0], goalPosInCar[1], obstaclePosInCar[0], obstaclePosInCar[1]]
+        
         return observation
 
 

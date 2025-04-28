@@ -10,7 +10,7 @@ from collections import deque
 print("Starting training...")
 
 # Create and unwrap the environment
-env = gym.make('SimpleDriving-v0', apply_api_compatibility=True, renders=True, isDiscrete=True)
+env = gym.make('SimpleDriving-v0', apply_api_compatibility=True, renders=False, isDiscrete=True)
 env = env.unwrapped
 state, info = env.reset()
 print("Observation:", state)  # Should print a 4-element vector
@@ -50,6 +50,19 @@ epsilon_decay = 0.995
 batch_size = 64
 replay_memory = deque(maxlen=10000)
 
+# PART 1 (COMMENT OUT WHEN NOT IN USE)
+#def select_action(state, epsilon):
+#    if np.random.rand() < epsilon:
+#        # uniform exploration
+#        return np.random.randint(action_size)
+#    else:
+#        # greedy exploitation
+#        state_tensor = torch.FloatTensor(state).unsqueeze(0)
+#        with torch.no_grad():
+#            q_values = q_network(state_tensor)
+#        return torch.argmax(q_values, dim=1).item()
+
+# PART 2
 def select_action(state, epsilon):
     if np.random.rand() <= epsilon:
         # Define a non-uniform distribution for the 9 actions.
@@ -99,6 +112,10 @@ def replay():
 for episode in range(num_episodes):
     state, info = env.reset()  # Unpack state and info from reset
     state = np.array(state, dtype=np.float32).flatten()  # Ensure flat array
+
+    # <-- print initial observation each episode
+    print(f"Episode {episode:3d} start obs:", state)
+    
     total_reward = 0
     for step in range(max_steps):
         action = select_action(state, epsilon)
