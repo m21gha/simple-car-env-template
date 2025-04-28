@@ -19,15 +19,42 @@ class QNetwork(nn.Module):
         x = torch.relu(self.fc2(x))
         return self.fc3(x)
 
-#### PART 1
+#### PART 1:: uniform greedy
+#def select_action(state, q_net, action_size, epsilon):
+#    if np.random.rand() < epsilon:
+#        return np.random.randint(action_size)
+#    else:
+#        state_tensor = torch.FloatTensor(state).unsqueeze(0)
+#        with torch.no_grad():
+#            q_vals = q_net(state_tensor)
+#        return torch.argmax(q_vals, dim=1).item()
+    
+
+#### PART 2: non-uniform ε-greedy
 def select_action(state, q_net, action_size, epsilon):
     if np.random.rand() < epsilon:
-        return np.random.randint(action_size)
+        # a handcrafted “safer” exploration distribution across the 9 discrete moves:
+        #   more weight on forwards, less on reversing
+        probs = np.array([
+            0.05,  # 0: Reverse-Left
+            0.05,  # 1: Reverse
+            0.05,  # 2: Reverse-Right
+            0.10,  # 3: Steer-Left
+            0.10,  # 4: No throttle
+            0.10,  # 5: Steer-Right
+            0.20,  # 6: Forward-Right
+            0.20,  # 7: Forward
+            0.15,  # 8: Forward-Left
+        ], dtype=np.float32)
+        return int(np.random.choice(np.arange(action_size), p=probs))
     else:
+        # greedy exploit
         state_tensor = torch.FloatTensor(state).unsqueeze(0)
         with torch.no_grad():
             q_vals = q_net(state_tensor)
         return torch.argmax(q_vals, dim=1).item()
+
+
 
 def replay(replay_memory, q_net, optimizer, criterion, gamma, batch_size):
     if len(replay_memory) < batch_size:
@@ -101,7 +128,7 @@ def main():
 
         print(f"Episode {episode}/{num_episodes}  Total Reward: {total_reward:.2f}  Epsilon: {epsilon:.3f}")
 
-    # Adjust filename if you saved different parts separately
+    # Adjust filenam when you try to save a model 
     torch.save(q_net.state_dict(), "paths/simple_driving_qlearning_part4.pth")
     print("Model saved!")
 
