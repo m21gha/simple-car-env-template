@@ -63,7 +63,7 @@ def main():
     ]
     # group C: only Part 4 (obstacles, 4‐D)
     models_4 = [
-        ("Part 4: Obstacles",           "paths/simple_driving_qlearning_part4.pth", 4),
+        ("Part 4: Obstacles",           "paths/simple_driving_qlearning_part4_improved.pth", 4),
     ]
 
     # uncomment the model to see

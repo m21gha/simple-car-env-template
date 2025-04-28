@@ -81,13 +81,14 @@ class SimpleDrivingEnv(gym.Env):
             break
           self._envStepCounter += 1
 
-        # Compute reward as L2 change in distance to goal
-        # dist_to_goal = math.sqrt(((car_ob[0] - self.goal[0]) ** 2 +
-                                  # (car_ob[1] - self.goal[1]) ** 2))
-        dist_to_goal = math.sqrt(((carpos[0] - goalpos[0]) ** 2 +
-                                  (carpos[1] - goalpos[1]) ** 2))
-        # reward = max(self.prev_dist_to_goal - dist_to_goal, 0)
-        reward = -dist_to_goal
+        # --- reward shaping: give bonus for forward progress ---
+        carpos, _ = self._p.getBasePositionAndOrientation(self.car.car)
+        goalpos, _ = self._p.getBasePositionAndOrientation(self.goal_object.goal)
+        dist_to_goal = math.hypot(carpos[0]-goalpos[0], carpos[1]-goalpos[1])
+
+        # shaping = how much closer we got this step
+        shaping = (self.prev_dist_to_goal - dist_to_goal)
+        reward = shaping * 10.0           # scale up small movements
         self.prev_dist_to_goal = dist_to_goal
 
         # Done by reaching goal
@@ -100,7 +101,9 @@ class SimpleDrivingEnv(gym.Env):
             self.done = True
             self.reached_goal = True
 
-        ob = car_ob
+        #ob = car_ob
+        # get your observation
+        ob = self.getExtendedObservation()
         return ob, reward, self.done, dict()
 
     def seed(self, seed=None):
